@@ -13,10 +13,10 @@ import (
 )
 
 // CreateProject creates project on a seed cluster
-func CreateProject(ctx context.Context, client ctrlruntimeclient.Client, name string) (*kubermaticv1.Project, error) {
+func CreateProject(ctx context.Context, client ctrlruntimeclient.Client) (*kubermaticv1.Project, error) {
 	project := &kubermaticv1.Project{}
 	project.Name = utilrand.String(10)
-	project.Spec.Name = name
+	project.Spec.Name = "sample-project"
 
 	if err := client.Create(ctx, project); err != nil {
 		return nil, err

@@ -91,8 +91,6 @@ func main() {
 		gcpServiceAccountPath string
 		gcpNetwork            string
 		gcpSubnet             string
-		projectName           string
-		clusterName           string
 		machineName           string
 		k8sVersion            string
 	)
@@ -101,8 +99,6 @@ func main() {
 	flag.StringVar(&gcpServiceAccountPath, "gcp-service-account", "", "GCP service account")
 	flag.StringVar(&gcpNetwork, "gcp-network", "", "GCP network")
 	flag.StringVar(&gcpSubnet, "gcp-subnet", "", "GCP subnet")
-	flag.StringVar(&projectName, "project-name", "test-project", "Kubermatic project name")
-	flag.StringVar(&clusterName, "cluster-name", "test-cluster", "Kubermatic cluster name")
 	flag.StringVar(&machineName, "machine-name", "test-machine", "Kubermatic Machine Deployment name")
 	flag.StringVar(&k8sVersion, "k8s-version", "1.23.9", "k8s version")
 	flag.Parse()
@@ -138,36 +134,41 @@ func main() {
 	ctx := context.TODO()
 
 	// Create a project
-	project, err := CreateProject(ctx, kkpClient.Seed, projectName)
+	fmt.Println("Creating project...")
+	project, err := CreateProject(ctx, kkpClient.Seed)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Create a user cluster
-	// NOTE: projectName is a human-readable name, project.Name is an ID
-	cluster, err := CreateCluster(ctx, kkpClient.Seed, clusterName, project.Name, string(gcpServiceAccount), gcpNetwork, gcpSubnet, *k8sSemver)
+	fmt.Println("Creating user cluster...")
+	cluster, err := CreateCluster(ctx, kkpClient.Seed, project.Name, string(gcpServiceAccount), gcpNetwork, gcpSubnet, *k8sSemver)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Initialize a user cluster client
-	// NOTE: clusterName is a human-readable name, cluster.Name is an ID
+	fmt.Println("Initializing user cluster client...")
 	if err = kkpClient.InitializeUserClusterClient(ctx, cluster.Name); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Create a user cluster nodes
+	fmt.Println("Creating nodes...")
 	if err = CreateMachineDeployment(ctx, kkpClient.User, machineName, gcpNetwork, gcpSubnet, cluster); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Create a sample workload
+	fmt.Println("Deploying sample workload...")
 	if err = CreateSamplePod(ctx, kkpClient.User); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	fmt.Println("Done!")
 }
