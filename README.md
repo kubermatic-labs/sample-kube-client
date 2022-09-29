@@ -2,6 +2,8 @@
 
 This repository provides an example of how to create a KKP cluster at a GCP cloud provider using the Kubernetes API.
 
+NOTE: The example works only with KKP 2.21
+
 Steps the client executes:
 1. Creates a project
 2. Creates a user cluster
